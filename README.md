@@ -36,8 +36,6 @@ Features
 Repository layout
 -----------------
 
--You said you'll upload only these items to GitHub:
-
 - `RTL_codes/` — a folder containing the four SystemVerilog files:
 	- `sd_card.sv`
 	- `sd_card_tb.sv`
