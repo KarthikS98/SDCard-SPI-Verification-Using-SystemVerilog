@@ -1,148 +1,129 @@
+
 # SD Card SPI — SystemVerilog Verification
 
-A SystemVerilog verification project that models an SPI master and a behavioral SD card to simulate and validate SD card initialization and read/write sequences (CMD0, CMD8, CMD17, CMD24) without hardware. Includes testbenches and simulation scripts to reproduce console outputs and waveforms demonstrating correct command-response and data transfer.
-
-Table of contents
-- Project overview
-- Features
-- Repository layout
-- Prerequisites
-- Quick start (Vivado / simulation)
-- Expected output
-- Contributing
-- License
-
-Project overview
----------------
-
-This project provides a reusable verification environment for an SD card interface implemented over SPI. It contains:
-
-- An SPI Master module (drives SCLK, MOSI, CS) that transmits 48-bit SD commands and receives responses over MISO.
-- A behavioral SD Card model that decodes commands, returns R1/R3/R7 responses, serves data tokens and data blocks, and accepts write transactions.
-- Testbenches to validate read (CMD17) and write (CMD24) flows, plus SPI master loopback and slave-response tests.
-- Simulation scripts and helper tools to run and inspect waveforms and console output.
-
-This environment lets you verify initialization and data transfer sequences (CMD0, CMD8, CMD17, CMD24) entirely in simulation.
-
-Features
---------
-
-- SPI master FSM: IDLE → TRANSFER → DONE; 48-bit transfers; MOSI on falling edge, MISO sampled on rising edge.
-- Behavioral SD card supporting core commands (CMD0, CMD8, CMD17, CMD24, CMD55, ACMD41, CMD58).
-- Testbenches with clear console logging to demonstrate command/response sequences and read/write verification.
-- Simulation helper scripts and Vivado-friendly project structure (files from Vivado project included in the `PBL_NEW` folder).
-
-Repository layout
+Short description
 -----------------
 
-Keep the repository organized for clarity. Suggested layout (the repo already contains similar structure):
+Compact verification suite that models an SPI master and a behavioral SD card in SystemVerilog. The repository focuses on the smallest set of sources and testbenches required to reproduce and verify SD card initialization, single-block read (CMD17) and write (CMD24) operations over SPI.
 
-- `src/` or `rtl/` — SystemVerilog source modules (suggest moving or copying `PBL_NEW.srcs/new/*.sv` here):
-	- `spi_master.sv` — SPI master module
-	- `sd_card.sv` — Behavioral SD card model
-- `tb/` or `testbench/` — testbenches
-	- `sd_card_tb.sv` — SD card verification TB
-	- `spi_master_tb.sv` — SPI master TB
-- `sim/` — simulation scripts and simulator artifacts (Tcl, `simulate.bat`, `compile.bat`)
-- `tools/` — utility scripts (`extract_pptx_text.py`, `extract_pptx_text.ps1`)
-- `docs/` — documentation and LaTeX source
-- `Results/` — waveform screenshots and console images (optional)
-- `PBL_NEW/` — original Vivado project files (ignore bulky intermediate files when committing)
-
-Make sure to add a `.gitignore` to exclude build artifacts and simulator caches (examples: `*.wdb`, `*.xsim`, `PBL_NEW.cache/`, `PBL_NEW.sim/`).
-
-Prerequisites
--------------
-
-- Xilinx Vivado 2020.2 or later (for GUI simulation and project import)
-- A SystemVerilog-capable simulator (Vivado XSIM is used by the provided project files)
-- Git (for repository management)
-
-Quick start — run simulations
---------------------------------
-
-Option A — using Vivado GUI (recommended)
-
-1. Open Vivado and create a new project or import the existing `PBL_NEW` Vivado project.
-2. Add or confirm SystemVerilog sources are present (`spi_master.sv`, `sd_card.sv`) and testbenches under simulation sources.
-3. Set `sd_card_tb.sv` as the top-level simulation file for SD card verification, or `spi_master_tb.sv` for SPI master tests.
-4. Run simulation for ~1000 ns and open the waveform viewer. Inspect console output for verification messages.
-
-Option B — run provided simulation scripts (if present)
-
-If the repository contains simulation batch files or TCL scripts (check `PBL_NEW.sim/sim_1/behav/`), use them from PowerShell. Example (adjust paths as needed):
-
-```powershell
-cd "C:\Users\lenov\Desktop\6th sem\PBL\System Verilog PBL\PBL_NEW\PBL_NEW.sim\sim_1\behav\xsim"
-.\simulate.bat
-```
-
-Note: exact paths and scripts depend on your Vivado export. Alternatively, use Vivado's Flow → Simulation → Run Simulation menu.
-
-Expected output
----------------
-
-Console/log samples you should see from the SD card testbench (trimmed):
-
-=== WRITE VERIFICATION SEQUENCE ===
-Step 1: Reading original data...
-CMD sent: 5100000000ff
-R1 response: 000000000000
-Token: 0000000000fe
-Data block: deadbeef1234
-...
-Step 2: Writing new data...
-CMD sent: 5800000000ff
-Response received: 000000000000
-Data token: 0000000000fe
-Data block: cafebabe5678
-Write response: 000000000005
-...
-Step 3: Reading data after write...
-Data block: cafebabe5678
-=== WRITE VERIFICATION COMPLETE ===
-
-SPI master testbench sample outputs:
-
-=== TEST 1: SPI Loopback ===
-Transfer complete:
-Data sent: 400000000095
-Data received: 400000000095
-SUCCESS: Loopback working correctly!
-
-=== TEST 2: Slave Response ===
-Transfer complete:
-Data sent: 5100000000FF
-Data received: 123456789ABC
-SUCCESS: Slave response working correctly!
-
-Notes and common clarifications
---------------------------------
-
-- CRC handling: Some testbenches use fixed CRC bytes for known commands in simulation. If you need full CRC7/CRC16 checking, add or enable CRC calculation in `crc` helpers.
-- SD memory model: The behavioral SD card stores blocks in-memory for simulation. If persistence or a larger memory is required, modify the model accordingly.
-- Simulator logs/waveforms: save large waveform files outside the repo or add them to `.gitignore`.
-
-Contributing
+Design goals
 ------------
 
-If you want to improve the project:
+- Minimal, readable SystemVerilog RTL and testbench code optimized for simulation.
+- Deterministic testbenches that log command/response sequences and verify data integrity.
+- Easy-to-run simulations using Vivado/XSIM or provided batch scripts.
 
-- Open an issue describing the change or bug.
-- Create a feature branch: `git checkout -b feat/crc-improvements`.
-- Submit a pull request with a short description and tests (if applicable).
+Professional repo layout (minimal)
+---------------------------------
 
-License
--------
+This is the recommended directory structure for the GitHub repository. Only include the files listed here.
 
-This repository is released under the MIT License — include a `LICENSE` file at the project root.
+Root files (required)
+- `README.md`             — this file (project summary + run instructions)
+- `LICENSE`               — e.g., MIT license text
+- `.gitignore`            — ignore build and simulator artifacts
 
-Authors
--------
+Source code (required)
+- `rtl/`                  — SystemVerilog design sources
+	- `spi_master.sv`       — SPI master implementation
+	- `sd_card.sv`          — Behavioral SD card model (in-memory block storage)
 
-Karthik S and team (project developed as part of EC362AI — SystemVerilog for Design & Verification).
+Testbenches (required)
+- `tb/`                   — verification testbenches
+	- `sd_card_tb.sv`       — full read/write verification (top for SD test)
+	- `spi_master_tb.sv`    — SPI master unit tests (loopback + slave-response)
 
-Contact
--------
+Simulation scripts (recommended)
+- `sim/`                  — small helper scripts and run files (optional)
+	- `run_sd_tb.tcl`       — simple XSIM/Tcl script that runs `sd_card_tb.sv`
+	- `run_spi_tb.tcl`      — simple XSIM/Tcl script that runs `spi_master_tb.sv`
+	- `README_SIM.md`       — short notes how to run the TCL scripts in Vivado
 
-For questions and contributions open an issue or contact the authors via the repository profile.
+Utilities and docs (optional)
+- `docs/`                 — one-page PDF or Markdown documentation (project report)
+- `tools/`                — small utility scripts (only if they are useful: `extract_pptx_text.py`)
+
+Files and folders to exclude (do NOT commit)
+-------------------------------------------
+
+These are generated files, simulator caches, and Vivado project cruft that should be kept out of Git:
+
+- `PBL_NEW.cache/`, `PBL_NEW.hw/`, `PBL_NEW.sim/` (Vivado project intermediate files)
+- `*.wdb`, `*.xsim`, `*.pb`, `*.log`, `*.jou`, `*.db` (simulator artifacts)
+- `*.wpc`, `*.wdf`, `*.mem` and large waveform dumps
+- `*.bit`, `*.bin`, `*.elf` (binaries)
+- `Results/` (large screenshots or exports) — keep only a few small example images if needed
+
+Suggested `.gitignore` starter (add at repo root)
+----------------------------------------------
+
+Add these lines to `.gitignore`:
+
+```
+# Vivado / Xilinx
+PBL_NEW.cache/
+PBL_NEW.sim/
+PBL_NEW.hw/
+
+# Simulator outputs
+*.wdb
+*.xsim
+*.pb
+*.log
+*.db
+*.jou
+*.mem
+
+# Build artifacts
+*.bit
+*.bin
+*.elf
+
+# Results / large files
+Results/
+```
+
+How to prepare the repo for GitHub (recommended steps)
+----------------------------------------------------
+
+1. Create a new, empty repository on GitHub (do not initialize with README if you will push local files).
+2. Locally, create the minimal layout above and copy only the required files into it.
+3. Add `.gitignore` and `LICENSE`.
+4. Commit and push:
+
+```powershell
+cd "C:\Users\lenov\Desktop\6th sem\PBL\System Verilog PBL"
+git init
+git add .
+git commit -m "Initial minimal import: RTL + testbenches"
+git branch -M main
+git remote add origin <your-repo-url>
+git push -u origin main
+```
+
+Quick run (Vivado / XSIM)
+-------------------------
+
+1. Open Vivado, create a new project and add `rtl/*.sv` and `tb/*.sv` as simulation sources.
+2. Use `sd_card_tb.sv` as simulation top for the SD verification sequence. Run for ~1000 ns.
+3. Alternatively run the provided `sim/*.tcl` scripts in the Vivado Tcl console:
+
+```
+# inside Vivado Tcl console
+source run_sd_tb.tcl
+```
+
+What I will not include for you
+------------------------------
+
+- I will not include Vivado project caches, simulator binary blobs, or huge waveform files in the repository. These are environment-specific and inflate repo size.
+
+Next steps (pick one)
+---------------------
+
+- I can create a ready-to-commit `.gitignore` and `LICENSE` for you.
+- I can generate the two minimal `run_*.tcl` simulation scripts and a short `README_SIM.md`.
+- I can scan your `PBL_NEW.srcs/new/` folder and suggest which `*.sv` files to copy into `rtl/` and `tb/`.
+
+Choose which of the three tasks above you'd like me to do next.
+
